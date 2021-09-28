@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pop Quiz</title>
+    <link rel="stylesheet" href="./assets/css/style.css">
+</head>
+<body>
+    <header>
+<h1>Let's Take a Quiz</h1>
+    </header>
+    <!--Here begins the main section-->
+    <main>
+        <div></div>
+        <!--This is the center of the page where everything will be displayed-->
+        <div class ="content" id="quizbackground">
+            <h1 id="starterText">Click the button to start the quiz.</h1>
+        <button type="button" class="startButton" id="startButton">Start</button>
+        <div class="hidden" id="gameContent">
+        <div class="scoreCard" id="scorecard">Correct answers: </div>
+        <div class="timeLeft" id="timeLeft">Time left:</div>
+        <div class="questionText" id="questionText">Question</div>
+        <div class="answers">
+            <button type="button" class="answerBtn" id="optionA">optionA</button>
+            <button type="button" class="answerBtn" id="optionB">optionB</button>
+            <button type="button" class="answerBtn" id="optionC">optionC</button>
+            <button type="button" class="answerBtn" id="optionD">optionD</button>
+        </div>
+        </div>
+        <div class="finalScoreText hidden" id="finalScoreText">You ended up with: X Correct answers</div>
+        <div>
+            <input type="text" id="userInitials" placeholder="Enter your initials here." class="userInitials hidden" required maxlength="3"/>
+        <button type="button" class="logButton hidden" id="logButton">Log Score</button>
+        </div>
+        
+        </div>
+        <div></div>
+
+    </main>
+    <script type="text/javascript" src="assets/js/script.js"></script>
+</body>
+</html>
