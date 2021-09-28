@@ -96,3 +96,9 @@ main{
     border-radius: 2px;
     border: 1px solid var(--color2);
 }
+
+.highScoresContainer ul{
+    list-style-type: "\1F3AE";
+    font-weight: bold;
+    font-family: Arial;
+}
