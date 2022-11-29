@@ -42,6 +42,14 @@ let questionSet = [
         "optionB": "B: Africa",
         "optionC": "C: Montgomery",
         "optionD": "D: Ho Chi Minh City"
+    },
+    {
+        "questionText":"Who am I?",
+        "rightAnswer":"Monica Vitti",
+        "optionA":"Peppa Pig",
+        "optionB":"Monica Vitti",
+        "optionC":"Monica Belucci",
+        "optionD":"The Queen of England"
     }
 
 ]
@@ -59,7 +67,7 @@ function countdown() {
         endQuiz();        
       }
   
-    }, 1000);
+    }, 3000);
 }
 
 //this function places my question and response text on the page
@@ -83,11 +91,12 @@ function askAQuestion(){
 }
 
 //this function evaluates the user's response to see if they answered wrong or right.
-function checkAnswer(){
+function checkAnswer(){    
+
         if (userAnswer === rightAnswer){
             correctAnswers++;
             scorecardEl.textContent = "Correct answers: " + correctAnswers;
-            console.log("right answer!");
+            
             if (questionIndex === questionSet.length - 1){
             endQuiz();
             }
@@ -99,7 +108,6 @@ function checkAnswer(){
         }
         else{
             secondsLeft = secondsLeft - 5;
-            console.log("wrong answer!");
             if(questionIndex === questionSet.length - 1){
             endQuiz();
         }
@@ -118,6 +126,9 @@ function startQuiz(){
 
     secondsLeft = 15;
     correctAnswers = 0;
+
+    //shows the score as 0 at the start of a new game
+    scorecardEl.textContent = "Correct answers: " + correctAnswers;
     
     startButton.classList.add("hidden");
     starterText.classList.add("hidden");
@@ -179,9 +190,6 @@ optionD.addEventListener("click", function(){
 //this button helps the user log their score and their initials in the local storage. 
 logButtonEl.addEventListener("click", function(){
     var userInitials = usersInitialsArea.value;
-    console.log(userInitials);
-
-
 
     userLog = JSON.parse(localStorage.getItem("userScores")) || [];
 
@@ -190,7 +198,7 @@ logButtonEl.addEventListener("click", function(){
     window.localStorage.setItem("userScores", JSON.stringify(userLog));
     }
     displayHighScores();
-})
+});
 
 //this function displays the data that was logged in the local storage.
 function displayHighScores(){
@@ -206,6 +214,3 @@ function displayHighScores(){
     }
 
 }
-
-
-

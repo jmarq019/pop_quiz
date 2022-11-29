@@ -1,6 +1,6 @@
 :root{
-    --canvas: silver;
-    --buttonCanvas: lightgray;
+    --canvas: white;
+    --buttonCanvas: white;
     --color1: slateblue;
     --color2: darkorchid;
     --shadowcolor: rgba(0, 0, 255, .2)
@@ -56,6 +56,7 @@ main{
     width: 50%;
     display: grid;
     grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
     column-gap: 5px;
     row-gap: 5px;
     margin-top: 1em;
