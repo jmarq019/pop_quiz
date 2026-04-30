@@ -1,49 +1,221 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" data-theme="light" data-aesthetic="notebook" data-ornaments="standard">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>N3漢字クイズ</title>
+    <title>N3漢字クイズ — 原稿用紙版</title>
     <link rel="stylesheet" href="./assets/css/style.css">
 </head>
 <body>
     <header>
-<h1>N3漢字クイズ</h1>
+        <div class="brand">
+            <div class="brand-seal" aria-hidden="true">
+                <span>漢字</span>
+            </div>
+            <div class="brand-text">
+                <span class="brand-jp">日本語能力試験 N3</span>
+                <span class="brand-en">Kanji Drill · On-yomi</span>
+            </div>
+        </div>
+
+        <div class="spine" aria-hidden="true">第三級・音読み試験</div>
+
+        <div class="meta-info">
+            <span class="meta-label">原稿用紙</span>
+            <div class="meta-row"><span>EDITION</span><span id="metaEdition">1.0</span></div>
+            <div class="meta-row"><span>SET</span><span>15 KANJI</span></div>
+        </div>
     </header>
-    <!--メインセクション-->
+
     <main>
-        <!--クイズの表示エリア-->
-        <div class ="content" id="quizbackground">
-            <h1 id="starterText">ボタンを押してクイズを始めましょう。</h1>
-        <button type="button" class="startButton" id="startButton">スタート</button>
-        <div class="hidden" id="gameContent">
-        <div class="scoreCard" id="scorecard">正解数: </div>
-        <div class="timeLeft" id="timeLeft">残り時間:</div>
-        <div id="questionCounter"></div>
-        <div class="quizInstruction">正しい音読みを選んでください：</div>
-        <div class="questionText" id="questionText">問題</div>
-        <div class="answers">
-            <button type="button" class="answerBtn" id="optionA">optionA</button>
-            <button type="button" class="answerBtn" id="optionB">optionB</button>
-            <button type="button" class="answerBtn" id="optionC">optionC</button>
-            <button type="button" class="answerBtn" id="optionD">optionD</button>
-        </div>
-        </div>
-        <div class="finalScoreText hidden" id="finalScoreText"></div>
-        <div id="missedQuestionsContainer" class="hidden">
-            <h3>間違えた問題：</h3>
-            <ul id="missedQuestionsList"></ul>
-        </div>
-        <div>
-            <input type="text" id="userInitials" placeholder="イニシャルを入力してください。" class="userInitials hidden" required maxlength="3"/>
-        <button type="button" class="logButton hidden" id="logButton">記録する</button>
-        <div class="highScoresContainer hidden" id="highScoresContainer"><ul id="highScores"></ul></div>
-        </div>
+        <article class="paper" id="paper">
 
-        </div>
+            <!-- ============ START SCREEN ============ -->
+            <section class="start-screen" id="startScreen">
+                <div>
+                    <p class="end-eyebrow">N3 漢字 · 音読み</p>
+                    <h1 class="start-headline">
+                        正しい<span class="accent">音読み</span>を<br>
+                        選びなさい。
+                    </h1>
+                </div>
+                <p class="start-sub">
+                    Choose the correct on-yomi reading for each kanji.
+                    Wrong answers cost 5 seconds. Stay sharp.
+                </p>
 
+                <div class="start-rules">
+                    <div class="rule">
+                        <span class="rule-num">60<span class="unit">秒</span></span>
+                        <span class="rule-label-jp">制限時間</span>
+                        <span class="rule-label">Time Limit</span>
+                    </div>
+                    <div class="rule">
+                        <span class="rule-num">15<span class="unit">問</span></span>
+                        <span class="rule-label-jp">問題数</span>
+                        <span class="rule-label">Questions</span>
+                    </div>
+                    <div class="rule">
+                        <span class="rule-num">−5<span class="unit">秒</span></span>
+                        <span class="rule-label-jp">減点</span>
+                        <span class="rule-label">Penalty</span>
+                    </div>
+                </div>
+
+                <button type="button" class="start-button" id="startButton">スタート</button>
+            </section>
+
+            <!-- ============ GAME ============ -->
+            <section class="game" id="game">
+                <div class="hud">
+                    <div class="score">
+                        <div>
+                            <div class="score-label">Score</div>
+                            <span class="score-num" id="scoreNum">0</span>
+                            <span class="score-jp">問正解</span>
+                        </div>
+                    </div>
+
+                    <div class="progress" id="progress" aria-label="progress"></div>
+
+                    <div class="timer" id="timer">
+                        <svg viewBox="0 0 80 80" aria-hidden="true">
+                            <circle class="track" cx="40" cy="40" r="36"></circle>
+                            <circle class="fill"  cx="40" cy="40" r="36" id="timerFill"></circle>
+                        </svg>
+                        <div class="timer-num">
+                            <span id="timerNum">60</span>
+                            <small>SEC</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="question-region" id="questionRegion">
+                    <div class="question-instruction">
+                        <span>次の漢字の音読みは？</span>
+                        <span class="q-num" id="questionCounter">Q 01 / 15</span>
+                    </div>
+
+                    <div class="kanji-frame">
+                        <span class="cell-tag">問題</span>
+                        <div class="grid-bg" aria-hidden="true"></div>
+                        <span class="kanji" id="kanji">運</span>
+                        <div class="hanko" id="hanko" aria-hidden="true">正解</div>
+                    </div>
+
+                    <div class="answers" id="answers">
+                        <button type="button" class="answer" data-idx="0">
+                            <span class="key">甲</span>
+                            <span class="reading" data-role="reading">ウン</span>
+                        </button>
+                        <button type="button" class="answer" data-idx="1">
+                            <span class="key">乙</span>
+                            <span class="reading" data-role="reading">エン</span>
+                        </button>
+                        <button type="button" class="answer" data-idx="2">
+                            <span class="key">丙</span>
+                            <span class="reading" data-role="reading">アン</span>
+                        </button>
+                        <button type="button" class="answer" data-idx="3">
+                            <span class="key">丁</span>
+                            <span class="reading" data-role="reading">ウ</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ============ END / RESULTS ============ -->
+            <section class="end" id="end">
+                <div class="end-banner">
+                    <div class="end-eyebrow">Final Result · 採点結果</div>
+                    <h2 class="end-title" id="endTitle">お疲れさまでした</h2>
+                    <div class="end-score">
+                        <span class="big" id="finalScore">0</span>
+                        <span class="denom">/ 15</span>
+                        <span class="label-jp">正解</span>
+                    </div>
+                </div>
+
+                <div class="missed-section hidden" id="missedSection">
+                    <h3 class="section-heading">間違えた問題 · Review</h3>
+                    <ul class="missed-list" id="missedList"></ul>
+                </div>
+
+                <div class="log-section" id="logSection">
+                    <h3 class="section-heading">記録する · Log Score</h3>
+                    <div class="log-row">
+                        <div class="log-field">
+                            <label for="userInitials">Initials (3 chars)</label>
+                            <input type="text" id="userInitials" maxlength="3" placeholder="A.B.C" autocomplete="off"/>
+                        </div>
+                        <button type="button" class="log-button" id="logButton">記録</button>
+                    </div>
+                </div>
+
+                <div class="end-actions">
+                    <button type="button" class="btn-secondary" id="restartButton">もう一度</button>
+                </div>
+
+                <div class="scores-section hidden" id="scoresSection">
+                    <h3 class="section-heading">高得点記録 · Leaderboard</h3>
+                    <table class="scores-table" id="scoresTable">
+                        <thead>
+                            <tr>
+                                <th style="width:3.5rem">順位</th>
+                                <th>イニシャル</th>
+                                <th class="center">スコア</th>
+                                <th class="right">日付</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scoresBody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <div class="page-foot">
+                <span>原稿用紙 No. 001</span>
+                <span class="page-num" id="pageNum">— 一 —</span>
+                <span>20 × 20</span>
+            </div>
+        </article>
     </main>
-    <script type="text/javascript" src="assets/js/script.js"></script>
+
+    <!-- ============ TWEAKS ============ -->
+    <button type="button" class="tweaks-fab" id="tweaksFab" title="Tweaks" aria-label="Open tweaks">調整</button>
+    <aside class="tweaks-panel" id="tweaksPanel">
+        <div class="tweaks-head">
+            <h3>調整 · TWEAKS</h3>
+            <button class="tweaks-close" id="tweaksClose" aria-label="Close">×</button>
+        </div>
+        <div class="tweaks-body">
+            <div class="tweak-group">
+                <span class="tweak-label">Aesthetic</span>
+                <div class="tweak-segment" data-tweak="aesthetic">
+                    <button data-value="notebook" class="active">原稿</button>
+                    <button data-value="textbook">教科書</button>
+                    <button data-value="juku">塾</button>
+                    <button data-value="sumie">墨絵</button>
+                </div>
+            </div>
+            <div class="tweak-group">
+                <span class="tweak-label">Mode</span>
+                <div class="tweak-segment" data-tweak="theme">
+                    <button data-value="light" class="active">明 Light</button>
+                    <button data-value="dark">暗 Dark</button>
+                </div>
+            </div>
+            <div class="tweak-group">
+                <span class="tweak-label">Ornaments</span>
+                <div class="tweak-segment" data-tweak="ornaments">
+                    <button data-value="minimal">最小</button>
+                    <button data-value="standard" class="active">標準</button>
+                    <button data-value="maximal">最大</button>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <script type="text/javascript" src="./assets/js/script.js"></script>
 </body>
 </html>

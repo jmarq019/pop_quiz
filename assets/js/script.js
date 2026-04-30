@@ -1,279 +1,389 @@
+// ============================================================
+// N3 漢字クイズ — Genkō Yōshi Edition
+// ============================================================
+
 // --- Game configuration ---
-const TIMER_START    = 60;   // starting seconds for each game
-const TIMER_PENALTY  = 5;    // seconds deducted for a wrong answer
-const TIMER_INTERVAL = 1000; // ms between each timer tick (was incorrectly 3000)
+const TIMER_START    = 60;
+const TIMER_PENALTY  = 5;
+const TIMER_INTERVAL = 1000;
+const TIMER_CIRC     = 226.19;            // 2π·36 (full circle for r=36)
+const FEEDBACK_DELAY = 800;
+const STORAGE_KEY    = "n3_kanji_scores_v2";
+const TWEAKS_KEY     = "n3_kanji_tweaks";
 
-// --- DOM references ---
-const startButton           = document.getElementById("startButton");
-const starterText           = document.getElementById("starterText");
-const questionTextEl        = document.getElementById("questionText");
-const optionA               = document.getElementById("optionA");
-const optionB               = document.getElementById("optionB");
-const optionC               = document.getElementById("optionC");
-const optionD               = document.getElementById("optionD");
-const timeEl                = document.getElementById("timeLeft");
-const gameContentEl         = document.getElementById("gameContent");
-const scorecardEl           = document.getElementById("scorecard");
-const finalScoreEl          = document.getElementById("finalScoreText");
-const logButtonEl           = document.getElementById("logButton");
-const usersInitialsArea     = document.getElementById("userInitials");
-const highScoresContainerEl      = document.getElementById("highScoresContainer");
-const highScoresEl               = document.getElementById("highScores");
-const questionCounterEl          = document.getElementById("questionCounter");
-const missedQuestionsContainerEl = document.getElementById("missedQuestionsContainer");
-const missedQuestionsListEl      = document.getElementById("missedQuestionsList");
-
-// --- Question bank (JLPT N3 kanji — select the correct On-yomi) ---
+// --- Question bank ---
 const questionSet = [
-    {
-        questionText: "運",
-        optionA: "ウン",
-        optionB: "エン",
-        optionC: "アン",
-        optionD: "ウ",
-        rightAnswer: "ウン"
-    },
-    {
-        questionText: "感",
-        optionA: "ケン",
-        optionB: "カン",
-        optionC: "コン",
-        optionD: "キン",
-        rightAnswer: "カン"
-    },
-    {
-        questionText: "決",
-        optionA: "ケン",
-        optionB: "ゲツ",
-        optionC: "ケツ",
-        optionD: "キン",
-        rightAnswer: "ケツ"
-    },
-    {
-        questionText: "始",
-        optionA: "ジ",
-        optionB: "チ",
-        optionC: "サ",
-        optionD: "シ",
-        rightAnswer: "シ"
-    },
-    {
-        questionText: "形",
-        optionA: "コウ",
-        optionB: "カイ",
-        optionC: "キョウ",
-        optionD: "ケイ",
-        rightAnswer: "ケイ"
-    },
-    {
-        questionText: "号",
-        optionA: "ゴウ",
-        optionB: "コウ",
-        optionC: "ガイ",
-        optionD: "ゲン",
-        rightAnswer: "ゴウ"
-    },
-    {
-        questionText: "祭",
-        optionA: "セイ",
-        optionB: "ソウ",
-        optionC: "サイ",
-        optionD: "シ",
-        rightAnswer: "サイ"
-    },
-    {
-        questionText: "写",
-        optionA: "ジャ",
-        optionB: "シャ",
-        optionC: "サ",
-        optionD: "ショ",
-        rightAnswer: "シャ"
-    },
-    {
-        questionText: "勝",
-        optionA: "シン",
-        optionB: "ジョウ",
-        optionC: "ソウ",
-        optionD: "ショウ",
-        rightAnswer: "ショウ"
-    },
-    {
-        questionText: "集",
-        optionA: "シュ",
-        optionB: "シュウ",
-        optionC: "ジュウ",
-        optionD: "サン",
-        rightAnswer: "シュウ"
-    }
+    { kanji: "運", options: ["ウン","エン","アン","ウ"],       answer: "ウン"  },
+    { kanji: "感", options: ["ケン","カン","コン","キン"],     answer: "カン"  },
+    { kanji: "決", options: ["ケン","ゲツ","ケツ","キン"],     answer: "ケツ"  },
+    { kanji: "始", options: ["ジ","チ","サ","シ"],            answer: "シ"    },
+    { kanji: "形", options: ["コウ","カイ","キョウ","ケイ"],   answer: "ケイ"  },
+    { kanji: "号", options: ["ゴウ","コウ","ガイ","ゲン"],     answer: "ゴウ"  },
+    { kanji: "祭", options: ["セイ","ソウ","サイ","シ"],       answer: "サイ"  },
+    { kanji: "写", options: ["ジャ","シャ","サ","ショ"],       answer: "シャ"  },
+    { kanji: "勝", options: ["シン","ジョウ","ソウ","ショウ"], answer: "ショウ" },
+    { kanji: "集", options: ["シュ","シュウ","ジュウ","サン"],    answer: "シュウ" },
+    { kanji: "港", options: ["ゴウ","ホウ","ソウ","コウ"],       answer: "コウ"   },
+    { kanji: "式", options: ["ジキ","セキ","チキ","シキ"],       answer: "シキ"   },
+    { kanji: "役", options: ["ガク","ラク","バク","ヤク"],       answer: "ヤク"   },
+    { kanji: "末", options: ["バツ","ハツ","サツ","マツ"],       answer: "マツ"   },
+    { kanji: "橋", options: ["コウ","ギョウ","ケイ","キョウ"],   answer: "キョウ" }
 ];
 
-// --- Mutable game state ---
-let rightAnswer;
-let correctAnswers;
-let userAnswer;
-let secondsLeft;
-let questionIndex = 0;
-let timerInterval;
-// Prevents endQuiz from firing twice when the timer expires mid-feedback-delay
-let gameActive = false;
-let missedQuestions = []; // questions the player answered incorrectly this game
+// --- DOM refs ---
+const $ = (id) => document.getElementById(id);
+const startScreen    = $("startScreen");
+const startButton    = $("startButton");
+const game           = $("game");
+const endSection     = $("end");
+const kanjiEl        = $("kanji");
+const hankoEl        = $("hanko");
+const answersEl      = $("answers");
+const answerBtns     = () => Array.from(answersEl.querySelectorAll(".answer"));
+const scoreNum       = $("scoreNum");
+const timerNum       = $("timerNum");
+const timerFill      = $("timerFill");
+const timerEl        = $("timer");
+const progressEl     = $("progress");
+const counterEl      = $("questionCounter");
+const questionRegion = $("questionRegion");
+const finalScore     = $("finalScore");
+const endTitle       = $("endTitle");
+const missedSection  = $("missedSection");
+const missedList     = $("missedList");
+const logSection     = $("logSection");
+const logButton      = $("logButton");
+const userInitials   = $("userInitials");
+const scoresSection  = $("scoresSection");
+const scoresBody     = $("scoresBody");
+const restartButton  = $("restartButton");
+const pageNumEl      = $("pageNum");
 
-// --- Answer button references (shared by the loop listener and checkAnswer) ---
-const answerButtons = [optionA, optionB, optionC, optionD];
-const optionKeys    = ["optionA", "optionB", "optionC", "optionD"];
+// --- State ---
+let secondsLeft, correctAnswers, questionIndex, timerInterval, gameActive;
+let missedQuestions = [];
+let answeredFlags   = []; // per-question result: 'done' | 'miss' | null
 
+// =========================================================
+// Progress dots
+// =========================================================
+function buildProgress() {
+    progressEl.innerHTML = "";
+    for (let i = 0; i < questionSet.length; i++) {
+        const dot = document.createElement("span");
+        dot.className = "dot";
+        progressEl.appendChild(dot);
+    }
+}
+function updateProgress() {
+    const dots = progressEl.children;
+    for (let i = 0; i < dots.length; i++) {
+        const d = dots[i];
+        d.className = "dot";
+        if (answeredFlags[i] === "done") d.classList.add("done");
+        else if (answeredFlags[i] === "miss") d.classList.add("miss");
+        if (i === questionIndex && gameActive) d.classList.add("current");
+    }
+}
 
-// Starts the countdown timer and updates the display each second.
-function countdown() {
-    timeEl.textContent = "残り時間: " + secondsLeft + " 秒";
-    timerInterval = setInterval(function() {
+// =========================================================
+// Timer
+// =========================================================
+function paintTimer() {
+    timerNum.textContent = secondsLeft;
+    const pct = Math.max(0, secondsLeft) / TIMER_START;
+    timerFill.style.strokeDashoffset = TIMER_CIRC * (1 - pct);
+    if (secondsLeft <= 10) timerEl.classList.add("warn");
+    else timerEl.classList.remove("warn");
+}
+function startTimer() {
+    paintTimer();
+    timerInterval = setInterval(() => {
         secondsLeft--;
-        timeEl.textContent = "残り時間: " + secondsLeft + " 秒";
+        paintTimer();
         if (secondsLeft <= 0) {
+            secondsLeft = 0;
+            paintTimer();
             endQuiz();
         }
     }, TIMER_INTERVAL);
 }
 
-// Renders the current question and its options onto the page.
-function askAQuestion() {
+// =========================================================
+// Question rendering
+// =========================================================
+const KEY_GLYPHS = ["甲","乙","丙","丁"]; // traditional A/B/C/D
+
+function renderQuestion() {
     const q = questionSet[questionIndex];
-    questionTextEl.textContent    = q.questionText;
-    optionA.textContent           = q.optionA;
-    optionB.textContent           = q.optionB;
-    optionC.textContent           = q.optionC;
-    optionD.textContent           = q.optionD;
-    rightAnswer                   = q.rightAnswer;
-    questionCounterEl.textContent = "問題 " + (questionIndex + 1) + " / " + questionSet.length;
+    kanjiEl.textContent = q.kanji;
+    counterEl.textContent = `Q ${String(questionIndex + 1).padStart(2,"0")} / ${String(questionSet.length).padStart(2,"0")}`;
+
+    const btns = answerBtns();
+    btns.forEach((btn, i) => {
+        btn.disabled = false;
+        btn.classList.remove("correct","wrong","reveal");
+        btn.querySelector('[data-role="reading"]').textContent = q.options[i];
+        btn.querySelector(".key").textContent = KEY_GLYPHS[i];
+        btn.dataset.value = q.options[i];
+    });
+
+    // Re-trigger ink-reveal animation on each new question
+    kanjiEl.style.animation = "none";
+    void kanjiEl.offsetWidth;
+    kanjiEl.style.animation = "";
+
+    updateProgress();
 }
 
-// Evaluates the selected answer, flashes green/red on the button, then advances or ends the quiz.
-// Buttons are disabled for 400ms so the feedback is visible before the next question loads.
-function checkAnswer(btn) {
-    answerButtons.forEach(b => b.disabled = true);
+function flipToNext() {
+    questionRegion.classList.add("flipping");
+    setTimeout(() => {
+        questionIndex++;
+        renderQuestion();
+        questionRegion.classList.remove("flipping");
+    }, 275);
+}
 
-    const isCorrect = userAnswer === rightAnswer;
-    btn.classList.add(isCorrect ? "correct" : "wrong");
+// =========================================================
+// Answer handling
+// =========================================================
+function handleAnswer(btn) {
+    if (!gameActive) return;
+    const btns = answerBtns();
+    btns.forEach(b => b.disabled = true);
+
+    const q = questionSet[questionIndex];
+    const chosen = btn.dataset.value;
+    const isCorrect = chosen === q.answer;
 
     if (isCorrect) {
+        btn.classList.add("correct");
         correctAnswers++;
+        answeredFlags[questionIndex] = "done";
+        scoreNum.textContent = correctAnswers;
+        // Hanko stamp animation
+        hankoEl.classList.remove("stamped");
+        void hankoEl.offsetWidth;
+        hankoEl.classList.add("stamped");
+        setTimeout(() => hankoEl.classList.remove("stamped"), 1200);
     } else {
-        // Deduct time as a penalty for a wrong answer
-        secondsLeft -= TIMER_PENALTY;
-        missedQuestions.push({
-            questionText:  questionSet[questionIndex].questionText,
-            correctAnswer: rightAnswer
+        btn.classList.add("wrong");
+        answeredFlags[questionIndex] = "miss";
+        secondsLeft = Math.max(0, secondsLeft - TIMER_PENALTY);
+        paintTimer();
+        missedQuestions.push({ kanji: q.kanji, answer: q.answer });
+        // Reveal the correct answer
+        btns.forEach(b => {
+            if (b.dataset.value === q.answer) b.classList.add("reveal");
         });
     }
 
-    scorecardEl.textContent = "正解数: " + correctAnswers;
+    updateProgress();
 
     setTimeout(() => {
-        if (!gameActive) return; // timer may have ended the game during the delay
-        btn.classList.remove("correct", "wrong");
-        answerButtons.forEach(b => b.disabled = false);
-
+        if (!gameActive) return;
         if (questionIndex === questionSet.length - 1) {
             endQuiz();
         } else {
-            questionIndex++;
-            askAQuestion();
+            flipToNext();
         }
-    }, 400);
+    }, FEEDBACK_DELAY);
 }
 
-// Initializes game state and shows the quiz UI.
+answersEl.addEventListener("click", (e) => {
+    const btn = e.target.closest(".answer");
+    if (btn && !btn.disabled) handleAnswer(btn);
+});
+
+// =========================================================
+// Lifecycle
+// =========================================================
 function startQuiz() {
-    clearInterval(timerInterval); // clear any timer left over from a previous game
-    secondsLeft    = TIMER_START;
-    correctAnswers = 0;
-    questionIndex  = 0;
+    clearInterval(timerInterval);
+    secondsLeft     = TIMER_START;
+    correctAnswers  = 0;
+    questionIndex   = 0;
     gameActive      = true;
     missedQuestions = [];
+    answeredFlags   = new Array(questionSet.length).fill(null);
 
-    scorecardEl.textContent = "正解数: 0";
-    answerButtons.forEach(b => b.disabled = false);
+    scoreNum.textContent = "0";
+    timerEl.classList.remove("warn");
 
-    startButton.classList.add("hidden");
-    starterText.classList.add("hidden");
-    gameContentEl.classList.remove("hidden");
-    highScoresContainerEl.classList.add("hidden");
-    logButtonEl.classList.add("hidden");
-    usersInitialsArea.classList.add("hidden");
-    finalScoreEl.classList.add("hidden");
-    missedQuestionsContainerEl.classList.add("hidden");
+    startScreen.classList.add("hidden");
+    endSection.classList.remove("active");
+    game.classList.add("active");
+    scoresSection.classList.add("hidden");
 
-    countdown();
-    askAQuestion();
+    buildProgress();
+    paintTimer();
+    renderQuestion();
+    startTimer();
 }
 
-// Stops the timer and transitions to the final score screen.
 function endQuiz() {
     if (!gameActive) return;
     gameActive = false;
     clearInterval(timerInterval);
-    // Reset index so the next game starts from question 1
-    questionIndex = 0;
 
-    finalScoreEl.textContent = "最終スコア：" + correctAnswers + " 問正解！";
+    game.classList.remove("active");
+    endSection.classList.add("active");
 
-    // Populate the missed-questions review, or hide the section if everything was correct
-    missedQuestionsListEl.innerHTML = "";
+    finalScore.textContent = correctAnswers;
+    endTitle.textContent =
+        correctAnswers === questionSet.length ? "満点！見事です。" :
+        correctAnswers >= 7  ? "よく出来ました。"      :
+        correctAnswers >= 4  ? "もう一歩。"            :
+                                "練習を続けましょう。";
+
+    // Missed questions review
+    missedList.innerHTML = "";
     if (missedQuestions.length > 0) {
-        missedQuestions.forEach(item => {
+        missedQuestions.forEach(m => {
             const li = document.createElement("li");
-            li.innerHTML = "<strong>" + item.questionText + "</strong><br>正解：" + item.correctAnswer;
-            missedQuestionsListEl.append(li);
+            li.innerHTML = `
+                <span class="m-label">Correct</span>
+                <span class="m-kanji">${m.kanji}</span>
+                <span class="m-reading">${m.answer}</span>`;
+            missedList.appendChild(li);
         });
-        missedQuestionsContainerEl.classList.remove("hidden");
+        missedSection.classList.remove("hidden");
+    } else {
+        missedSection.classList.add("hidden");
     }
 
-    starterText.classList.remove("hidden");
-    startButton.classList.remove("hidden");
-    gameContentEl.classList.add("hidden");
-    finalScoreEl.classList.remove("hidden");
-    logButtonEl.classList.remove("hidden");
-    usersInitialsArea.classList.remove("hidden");
+    logSection.classList.remove("hidden");
+    userInitials.value = "";
+    userInitials.focus();
 }
 
+// =========================================================
+// Leaderboard
+// =========================================================
+function fmtDate(ts) {
+    const d = new Date(ts);
+    const m = String(d.getMonth() + 1).padStart(2,"0");
+    const day = String(d.getDate()).padStart(2,"0");
+    return `${d.getFullYear()}.${m}.${day}`;
+}
 
-// --- Event listeners ---
+function loadScores() {
+    try {
+        const raw = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        return raw.map(e => ({
+            initials: e.initials || "???",
+            score:    Number(e.score) || 0,
+            total:    Number(e.total) || 10,
+            date:     Number(e.date)  || Date.now()
+        }));
+    } catch(e) { return []; }
+}
+
+function saveScore(initials) {
+    const log = loadScores();
+    log.push({
+        initials: initials.toUpperCase().slice(0,3),
+        score:    correctAnswers,
+        total:    questionSet.length,
+        date:     Date.now()
+    });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(log));
+}
+
+function renderScores() {
+    const log = loadScores()
+        .sort((a, b) => b.score - a.score || a.date - b.date)
+        .slice(0, 10);
+
+    scoresBody.innerHTML = "";
+    if (log.length === 0) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td colspan="4" class="scores-empty">まだ記録がありません。</td>`;
+        scoresBody.appendChild(tr);
+    } else {
+        log.forEach((entry, i) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td class="rank">${i + 1}</td>
+                <td class="initials">${entry.initials}</td>
+                <td class="score">${entry.score}<span style="color:var(--sumi-soft);font-size:.7em">/${entry.total}</span></td>
+                <td class="date">${fmtDate(entry.date)}</td>`;
+            scoresBody.appendChild(tr);
+        });
+    }
+    scoresSection.classList.remove("hidden");
+}
+
+logButton.addEventListener("click", () => {
+    const v = userInitials.value.trim();
+    if (!v) { userInitials.focus(); return; }
+    saveScore(v);
+    logSection.classList.add("hidden");
+    renderScores();
+});
+
+userInitials.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") logButton.click();
+});
+
+restartButton.addEventListener("click", () => {
+    endSection.classList.remove("active");
+    startScreen.classList.remove("hidden");
+});
 
 startButton.addEventListener("click", startQuiz);
 
-// A single loop registers click handlers for all four answer buttons.
-answerButtons.forEach((btn, i) => {
-    btn.addEventListener("click", () => {
-        userAnswer = questionSet[questionIndex][optionKeys[i]];
-        checkAnswer(btn);
-    });
-});
+// =========================================================
+// Tweaks panel
+// =========================================================
+const tweaksFab   = $("tweaksFab");
+const tweaksPanel = $("tweaksPanel");
+const tweaksClose = $("tweaksClose");
 
-// Saves the player's initials and score to localStorage, then shows the leaderboard.
-logButtonEl.addEventListener("click", function() {
-    const userInitials = usersInitialsArea.value.trim();
-    if (userInitials.length === 0) return; // don't save blank entries
-
-    const userLog = JSON.parse(localStorage.getItem("userScores")) || [];
-    userLog.push({ initials: userInitials, score: correctAnswers });
-    localStorage.setItem("userScores", JSON.stringify(userLog));
-
-    displayHighScores();
-});
-
-// Renders the saved leaderboard from localStorage.
-function displayHighScores() {
-    logButtonEl.classList.add("hidden");
-    usersInitialsArea.classList.add("hidden");
-    highScoresContainerEl.classList.remove("hidden");
-
-    // Clear existing list items to prevent duplicates on repeat calls
-    highScoresEl.innerHTML = "";
-
-    const userLog = JSON.parse(localStorage.getItem("userScores")) || [];
-    userLog.forEach(entry => {
-        const listItem = document.createElement("li");
-        listItem.innerText = entry.initials + " : " + entry.score;
-        highScoresEl.append(listItem);
+function loadTweaks() {
+    try { return JSON.parse(localStorage.getItem(TWEAKS_KEY)) || {}; }
+    catch(e) { return {}; }
+}
+function saveTweaks(t) {
+    localStorage.setItem(TWEAKS_KEY, JSON.stringify(t));
+}
+function applyTweak(key, value) {
+    const attr = ({ aesthetic: "data-aesthetic", theme: "data-theme", ornaments: "data-ornaments" })[key];
+    if (!attr) return;
+    document.documentElement.setAttribute(attr, value);
+    document.querySelectorAll(`.tweak-segment[data-tweak="${key}"] button`).forEach(b => {
+        b.classList.toggle("active", b.dataset.value === value);
     });
 }
+function initTweaks() {
+    const t = loadTweaks();
+    if (t.aesthetic) applyTweak("aesthetic", t.aesthetic);
+    if (t.theme)     applyTweak("theme", t.theme);
+    if (t.ornaments) applyTweak("ornaments", t.ornaments);
+}
+
+document.querySelectorAll(".tweak-segment").forEach(seg => {
+    seg.addEventListener("click", (e) => {
+        const btn = e.target.closest("button");
+        if (!btn) return;
+        const key   = seg.dataset.tweak;
+        const value = btn.dataset.value;
+        applyTweak(key, value);
+        const t = loadTweaks();
+        t[key] = value;
+        saveTweaks(t);
+    });
+});
+
+tweaksFab.addEventListener("click", () => {
+    tweaksPanel.classList.add("open");
+    tweaksFab.style.display = "none";
+});
+tweaksClose.addEventListener("click", () => {
+    tweaksPanel.classList.remove("open");
+    tweaksFab.style.display = "";
+});
+
+initTweaks();
+buildProgress();
