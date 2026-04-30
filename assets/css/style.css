@@ -21,14 +21,16 @@ header h1 {
     text-align: center;
 }
 
-main{
-    display: grid;
-    grid-template-columns: 1fr 2fr 1fr;
-    column-gap: 5px;
+main {
+    display: flex;
+    justify-content: center;
+    padding: 0 10%;
 }
 
 .content{
-    height: 500px;
+    width: 100%;
+    max-width: 600px;
+    min-height: 500px;
     background: linear-gradient(var(--color1), transparent);
     border: 1px solid var(--color1);
     border-radius:5px;
@@ -45,6 +47,13 @@ main{
     border: 1px var(--color2) solid;
     border-radius: 5px;
     font-family: "Calibri", sans-serif;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.startButton:hover {
+    background-color: var(--color1);
+    color: white;
 }
 
 .scoreCard{
@@ -66,11 +75,34 @@ main{
     font-size: 1em;
     border-radius: 5px;
     border: 2px solid var(--color1);
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.answerBtn:hover {
+    background-color: #e8e0f7;
+}
+
+.answerBtn.correct {
+    background-color: #c8f5c8;
+    border-color: green;
+}
+
+.answerBtn.wrong {
+    background-color: #f5c8c8;
+    border-color: red;
+}
+
+.quizInstruction {
+    margin-top: 1em;
+    font-size: 0.9em;
+    color: #555;
 }
 
 .questionText{
-    margin-top: 1em;   
-    font-size: 2em;
+    margin-top: 0.25em;
+    font-size: 5em;
+    line-height: 1.1;
 }
 
 .hidden{
@@ -89,7 +121,14 @@ main{
     font-size: 15px;
     font-weight: bold;
     border: 1px var(--color2) solid;
-    border-radius: 5px;  
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.logButton:hover {
+    background-color: var(--color1);
+    color: white;
 }
 
 .userInitials{
@@ -102,4 +141,35 @@ main{
     list-style-type: "\1F3AE";
     font-weight: bold;
     font-family: Arial;
+}
+
+#questionCounter {
+    font-size: 0.9em;
+    color: #555;
+    margin-top: 0.5em;
+}
+
+#missedQuestionsContainer {
+    margin-top: 1em;
+    padding: 10px;
+    background-color: rgba(245, 200, 200, 0.3);
+    border: 1px solid #f5c8c8;
+    border-radius: 5px;
+}
+
+#missedQuestionsContainer h3 {
+    margin: 0 0 0.5em 0;
+    font-size: 1em;
+}
+
+#missedQuestionsList {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+#missedQuestionsList li {
+    margin-bottom: 0.75em;
+    font-size: 0.9em;
+    line-height: 1.4;
 }

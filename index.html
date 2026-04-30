@@ -1,27 +1,28 @@
 <!DOCTYPE html>
-<html lang="en-US">
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pop Quiz</title>
+    <title>N3漢字クイズ</title>
     <link rel="stylesheet" href="./assets/css/style.css">
 </head>
 <body>
     <header>
-<h1>Let's Take a Quiz</h1> 
+<h1>N3漢字クイズ</h1>
     </header>
-    <!--Here begins the main section-->
+    <!--メインセクション-->
     <main>
-        <div></div>
-        <!--This is the center of the page where everything will be displayed-->
+        <!--クイズの表示エリア-->
         <div class ="content" id="quizbackground">
-            <h1 id="starterText">Click the button to start the quiz.</h1>
-        <button type="button" class="startButton" id="startButton">Start</button>
+            <h1 id="starterText">ボタンを押してクイズを始めましょう。</h1>
+        <button type="button" class="startButton" id="startButton">スタート</button>
         <div class="hidden" id="gameContent">
-        <div class="scoreCard" id="scorecard">Correct answers: </div>
-        <div class="timeLeft" id="timeLeft">Time left:</div>
-        <div class="questionText" id="questionText">Question</div>
+        <div class="scoreCard" id="scorecard">正解数: </div>
+        <div class="timeLeft" id="timeLeft">残り時間:</div>
+        <div id="questionCounter"></div>
+        <div class="quizInstruction">正しい音読みを選んでください：</div>
+        <div class="questionText" id="questionText">問題</div>
         <div class="answers">
             <button type="button" class="answerBtn" id="optionA">optionA</button>
             <button type="button" class="answerBtn" id="optionB">optionB</button>
@@ -29,15 +30,18 @@
             <button type="button" class="answerBtn" id="optionD">optionD</button>
         </div>
         </div>
-        <div class="finalScoreText hidden" id="finalScoreText">You ended up with: X Correct answers</div>
+        <div class="finalScoreText hidden" id="finalScoreText"></div>
+        <div id="missedQuestionsContainer" class="hidden">
+            <h3>間違えた問題：</h3>
+            <ul id="missedQuestionsList"></ul>
+        </div>
         <div>
-            <input type="text" id="userInitials" placeholder="Enter your initials here." class="userInitials hidden" required maxlength="3"/>
-        <button type="button" class="logButton hidden" id="logButton">Log Score</button>
+            <input type="text" id="userInitials" placeholder="イニシャルを入力してください。" class="userInitials hidden" required maxlength="3"/>
+        <button type="button" class="logButton hidden" id="logButton">記録する</button>
         <div class="highScoresContainer hidden" id="highScoresContainer"><ul id="highScores"></ul></div>
         </div>
-        
+
         </div>
-        <div></div>
 
     </main>
     <script type="text/javascript" src="assets/js/script.js"></script>
