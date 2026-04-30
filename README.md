@@ -11,7 +11,7 @@ A JLPT N3 kanji drill that tests on-yomi (Chinese-derived) readings across 15 qu
 - [Tests](#tests)
 
 ## Installation
-Open `index.html` directly in any modern browser — no build step or server required. The page is also accessible at [this link](https://jmarq019.github.io/pop_quiz/).
+The page is deployed in Vercel. Use [this link](https://pop-quiz-tan.vercel.app/) to access.
 
 ## Usage
 1. Click **スタート** to begin. A 60-second countdown ring starts immediately.
